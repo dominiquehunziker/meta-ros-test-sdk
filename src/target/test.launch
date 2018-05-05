@@ -1,0 +1,4 @@
+<launch>
+  <node name="talker" pkg="runner" type="runner_node" required="true"/>
+  <node name="listener" pkg="my_pkg" type="my_pkg_node" required="true"/>
+</launch>
