@@ -6,6 +6,11 @@ set -e
 echo "FAILURE" > status.txt
 
 on_exit() {
+    pkill -2 -P $$
+    sleep 5
+    pkill -15 -P $$
+    sleep 5
+
     echo "========================================"
     [ -e ./status.txt ] || cat ../status.txt 
     [ -e ../status.txt ] || cat ./status.txt 
@@ -36,12 +41,12 @@ cp tmp-glibc/deploy/sdk/*.sh  ../src/docker/toolchain.sh
 docker build -t ros-sdk-test ../src/docker
 
 # Generate binaries for target system using the SDK docker image
-mkdir sdk-output
+[ -e sdk-output ] || mkdir sdk-output
 docker run --rm -v `pwd`/sdk-output:/root/output ros-sdk-test
 
 # Launch qemu
-runqemu tmp-glibc/deploy/images/qemuarm/ros-sdk-test-qemuarm.qemuboot.conf slirp &
-sleep 15  # Wait a bit for the image to boot
+runqemu tmp-glibc/deploy/images/qemuarm/ros-sdk-test-qemuarm.qemuboot.conf slirp qemuparams=-snapshot &
+sleep 30  # Wait a bit for the image to boot
 
 ssh-keygen -f ~/.ssh/known_hosts -R [localhost]:2222
 scp -P 2222 -o StrictHostKeyChecking=no ../status.txt root@localhost:/home/root/
@@ -53,6 +58,3 @@ scp -P 2222 -r ../src/target root@localhost:/home/root/src
 # Run script on target
 ssh -p 2222 root@localhost /home/root/src/run.sh
 scp -P 2222 root@localhost:/home/root/status.txt ../
-
-# Kill qemu
-kill %1

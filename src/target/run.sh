@@ -2,11 +2,15 @@
 
 set -e
 
+# Fix network configuration
+echo "127.0.0.1 $(cat /etc/hostname)" >> /etc/hosts
+
 # Install binaries built with SDK
 tar xf /home/root/data.tar -C /
 
 # Setup ROS environment for building a binary
 export ROS_DISTRO=indigo
+export ROS_MASTER_URI=http://localhost:11311
 
 export ROS_PACKAGE_PATH=/opt/ros/${ROS_DISTRO}/share:/opt/ros/cross_compiled/share
 export PATH=$PATH:/opt/ros/${ROS_DISTRO}/bin:/opt/ros/cross_compiled/bin
@@ -34,8 +38,6 @@ catkin_make install
 # Setup ROS environment for execution
 . install/setup.bash
 
-export ROS_MASTER_URI=http://192.168.7.2:11311
-export ROS_IP=192.168.7.2
-
 # Run simple test
+echo "===== RUN SIMPLE TEST ====="
 roslaunch /home/root/src/test.launch
